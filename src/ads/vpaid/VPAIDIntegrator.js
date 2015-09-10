@@ -425,6 +425,8 @@ VPAIDIntegrator.prototype._addSkipButton = function (adUnit, vastResponse, next)
     skipButton.onclick = function (e) {
       adUnit.skipAd(noop);//We skip the adUnit
 
+      player.trigger('adSkip');
+
       //We prevent event propagation to avoid problems with the clickThrough and so on
       if (window.Event.prototype.stopPropagation !== undefined) {
         e.stopPropagation();
