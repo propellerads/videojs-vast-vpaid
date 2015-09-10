@@ -196,6 +196,7 @@ VASTIntegrator.prototype._addSkipButton = function addSkipButton(source, tracker
     skipButton.onclick = function (e) {
       if (dom.hasClass(skipButton, 'enabled')) {
         tracker.trackSkip();
+        player.trigger('adSkip');
         player.trigger('ended');//We trigger the end of the ad playing
       }
 

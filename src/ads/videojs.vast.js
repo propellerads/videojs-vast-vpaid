@@ -36,15 +36,28 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
 
   var settings = extend({}, defaultOpts, options || {});
 
+  if (isDefined(settings.urls)) {
+    settings.url = echoFn(settings.urls.shift());
+
+    player.on('adSkip', function () {
+      settings.urls = [];
+    });
+
+    player.on('vast.adError', playNext);
+    player.on('vast.adEnd', playNext);
+
+  }
+
   if (isString(settings.url)) {
     settings.url = echoFn(settings.url);
   }
 
-  if (!isDefined(settings.url)) {
+  if (!isDefined(settings.url) && !isDefined(settings.urls)) {
     return trackAdError(new VASTError('on VideoJS VAST plugin, missing url on options object'));
   }
 
   playerUtils.prepareForAds(player);
+
 
   if (settings.playAdAlways) {
     // No matter what happens we play a new ad before the user sees the video again.
@@ -66,6 +79,13 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
     //If we are reseting the plugin, we don't want to restore the content
     snapshot = null;
     cancelAds();
+  });
+
+  player.on('adNext', function () {
+    cancelAds();
+    setTimeout(function(){
+      player.play();
+    }, 0);
   });
 
   player.vast = {
@@ -91,7 +111,9 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
 
     playerUtils.once(player, ['vast.adsCancel', 'vast.adEnd'], function () {
       removeAdUnit();
-      restoreVideoContent();
+      if(!isDefined(settings.urls) || !settings.urls.length ) {
+        restoreVideoContent();
+      }
     });
 
     async.waterfall([
@@ -205,6 +227,13 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
       getVastResponse,
       playAd
     ], callback);
+  }
+
+  function playNext(){
+    if(settings.urls !== null && settings.urls.length > 0){
+      settings.url = echoFn(settings.urls.shift());
+      player.trigger('adNext');
+    }
   }
 
   function getVastResponse(callback) {
