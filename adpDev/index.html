@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AutoPlay Muted VIdeo with waterfall</title>
+
+    <link href="video-js.min.css" rel="stylesheet">
+    <link href="videojs-vast-vpaid.min.css" rel="stylesheet">
+
+    <!-- PLUGIN js files -->
+
+</head>
+<body>
+
+<script type="text/javascript" src="scripts/video.js"></script>
+<script type="text/javascript" src="scripts/videojs-vast-vpaid.js"></script>
+<script type="text/javascript" src="scripts/videojs_initWrapper.js"></script>
+
+<video id="VIDEO_CONTAINER"
+       class="video-js vjs-default-skin"
+       muted
+       controls
+       preload="auto"
+       width="400" height="300"
+        >
+    <source src="http://sportmovs.com/contents/videos/3/366/n366.mp4" type="video/mp4" />
+</video>
+
+<script>
+    videoInitWrapper({
+        url : "http://pp.vidcore.tv/player/st/?sid=1&nosvpaid=1&not_encode=0&rand=",
+        sid : 1,
+        autoplay : true,
+        pixel    : 'http://stat.vidcore.tv/stat/pxsid/?sid=1',
+        containerId : 'VIDEO_CONTAINER'
+    });
+</script>
+
+</body>
+</html>

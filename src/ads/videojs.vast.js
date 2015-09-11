@@ -39,13 +39,14 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
   if (isDefined(settings.urls)) {
     settings.url = echoFn(settings.urls.shift());
 
-    player.on('adSkip', function () {
-      settings.urls = [];
-    });
-
+    player.on('adSkip', clearWaterfall);
     player.on('vast.adError', playNext);
-    player.on('vast.adEnd', playNext);
+    player.on('vast.adEnd', clearWaterfall);
 
+  }
+
+  if (isDefined(settings.postRoll)) {
+    player.on('content');
   }
 
   if (isString(settings.url)) {
@@ -230,10 +231,14 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
   }
 
   function playNext(){
-    if(settings.urls !== null && settings.urls.length > 0){
+    if(settings.urls.length > 0){
       settings.url = echoFn(settings.urls.shift());
       player.trigger('adNext');
     }
+  }
+
+  function clearWaterfall(){
+    settings.urls = [];
   }
 
   function getVastResponse(callback) {
