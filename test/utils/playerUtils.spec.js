@@ -33,7 +33,8 @@ describe("playerUtils", function () {
         suppressedTracks: [],
         nativePoster: 'http://video-js.zencoder.com/oceans-clip.png',
         style: 'border:none',
-        playing: false
+        playing: false,
+        autoplay: true
       });
     });
 
@@ -46,7 +47,8 @@ describe("playerUtils", function () {
         currentTime: 0,
         type: 'video/mp4',
         playing: false,
-        suppressedTracks: []
+        suppressedTracks: [],
+        autoplay: true
       });
 
       dom.addClass(tech, 'vjs-tech');
@@ -63,7 +65,8 @@ describe("playerUtils", function () {
         playing: true,
         suppressedTracks: [],
         nativePoster: 'http://video-js.zencoder.com/oceans-clip.png',
-        style: 'border:none'
+        style: 'border:none',
+        autoplay: true
       });
     });
 
