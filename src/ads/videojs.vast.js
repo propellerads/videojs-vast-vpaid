@@ -3,6 +3,7 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
   var player = this;
   var vast = new VASTClient();
   var adsCanceled = false;
+  var _postRoll = false;
   var defaultOpts = {
     // maximum amount of time in ms to wait to receive `adsready` from the ad
     // implementation after play has been requested. Ad implementations are
@@ -45,8 +46,18 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
 
   }
 
-  if (isDefined(settings.postRoll)) {
-    player.on('content');
+  if (isDefined(settings.postRoll) && settings.postRoll.length) {
+    player.on('vast.postRoll', function(){
+      _postRoll = true;
+    });
+    player.one('vast.contentEnd', function(){
+      player.trigger('vast.postRoll');
+      settings.urls = settings.postRoll;
+      if(snapshot !== null && isDefined(snapshot)){
+        snapshot.autoplay = false;
+      }
+      setTimeout(tryToPlayAd,0);
+    });
   }
 
   if (isString(settings.url)) {
@@ -69,7 +80,7 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
     });
   }
 
-  player.on('vast.firstPlay', tryToPlayPrerollAd);
+  player.on('vast.firstPlay', tryToPlayAd);
 
   //If there is an error on the player, we reset the plugin.
   player.on('error', function() {
@@ -85,6 +96,7 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
   player.on('adNext', function () {
     cancelAds();
     setTimeout(function(){
+      if(!_postRoll && settings.urls.length)
       player.play();
     }, 0);
   });
@@ -105,8 +117,8 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
 
   return player.vast;
 
-  /**** Local functions ****/
-  function tryToPlayPrerollAd() {
+  function tryToPlayAd() {
+
     //We remove the poster to prevent flickering whenever the content starts playing
     playerUtils.removeNativePoster(player);
 

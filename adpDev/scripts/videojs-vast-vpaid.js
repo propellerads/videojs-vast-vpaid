@@ -2765,7 +2765,8 @@ playerUtils.getPlayerSnapshot = function getPlayerSnapshot(player) {
     currentTime: player.currentTime(),
     type: player.currentType(),
     playing: !player.paused(),
-    suppressedTracks: getSuppressedTracks(player)
+    suppressedTracks: getSuppressedTracks(player),
+    autoplay : true
   };
 
   if (tech) {
@@ -2829,7 +2830,11 @@ playerUtils.restorePlayerSnapshot = function restorePlayerSnapshot(player, snaps
     player.load();
 
     // and then resume from the snapshots time once the original src has loaded
-    player.one('canplay', tryToResume);
+
+    if(snapshot.autoplay){
+      player.one('canplay', tryToResume);
+    }
+
 
   } else {
     restoreTracks();
@@ -2929,12 +2934,14 @@ playerUtils.isReadyToResume = function (tech) {
 playerUtils.prepareForAds = function (player) {
   var blackPoster = player.addChild('blackPoster');
   var _firstPlay = true;
+  var _postRoll = false;
   var volumeSnapshot;
 
 
   monkeyPatchPlayerApi();
 
   player.on('play', tryToTriggerFirstPlay);
+  player.on('vast.postRoll', postRollHandle);
   player.on('vast.reset', resetFirstPlay);//Every time we change the sources we reset the first play.
   player.on('adNext', resetFirstPlay);
   player.on('vast.firstPlay', restoreContentVolume);
@@ -2966,7 +2973,7 @@ playerUtils.prepareForAds = function (player) {
      */
     var origPlay = player.play;
     player.play = function (callOrigPlay) {
-      if (isFirstPlay()) {
+      if (isFirstPlay() && !isPostRoll()) {
         firstPlay.call(this);
       } else {
         resume.call(this, callOrigPlay);
@@ -3031,7 +3038,7 @@ playerUtils.prepareForAds = function (player) {
   }
 
   function tryToTriggerFirstPlay() {
-    if (isFirstPlay()) {
+    if (isFirstPlay() && !isPostRoll()) {
       _firstPlay = false;
       player.trigger('vast.firstPlay');
     }
@@ -3052,6 +3059,14 @@ playerUtils.prepareForAds = function (player) {
       muted: player.muted(),
       volume: player.volume()
     };
+  }
+
+  function postRollHandle(){
+    return _postRoll = true;
+  }
+
+  function isPostRoll(){
+    return _postRoll;
   }
 
   function restoreContentVolume() {
@@ -3407,6 +3422,7 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
   var player = this;
   var vast = new VASTClient();
   var adsCanceled = false;
+  var _postRoll = false;
   var defaultOpts = {
     // maximum amount of time in ms to wait to receive `adsready` from the ad
     // implementation after play has been requested. Ad implementations are
@@ -3449,8 +3465,18 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
 
   }
 
-  if (isDefined(settings.postRoll)) {
-    player.on('content');
+  if (isDefined(settings.postRoll) && settings.postRoll.length) {
+    player.on('vast.postRoll', function(){
+      _postRoll = true;
+    });
+    player.one('vast.contentEnd', function(){
+      player.trigger('vast.postRoll');
+      settings.urls = settings.postRoll;
+      if(snapshot !== null && isDefined(snapshot)){
+        snapshot.autoplay = false;
+      }
+      setTimeout(tryToPlayAd,0);
+    });
   }
 
   if (isString(settings.url)) {
@@ -3473,7 +3499,7 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
     });
   }
 
-  player.on('vast.firstPlay', tryToPlayPrerollAd);
+  player.on('vast.firstPlay', tryToPlayAd);
 
   //If there is an error on the player, we reset the plugin.
   player.on('error', function() {
@@ -3489,6 +3515,7 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
   player.on('adNext', function () {
     cancelAds();
     setTimeout(function(){
+      if(!_postRoll && settings.urls.length)
       player.play();
     }, 0);
   });
@@ -3509,8 +3536,8 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
 
   return player.vast;
 
-  /**** Local functions ****/
-  function tryToPlayPrerollAd() {
+  function tryToPlayAd() {
+
     //We remove the poster to prevent flickering whenever the content starts playing
     playerUtils.removeNativePoster(player);
 

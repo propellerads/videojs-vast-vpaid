@@ -42,14 +42,17 @@
     }
 
     function _init(config){
-      var urls = _reconfigure(config).vast_preroll.slice(0);
+      config = _reconfigure(config);
+      var preRoll = config.vast_preroll.slice(0);
+      var postRoll = config.vast_postroll.slice(0);
 
       videojs(options.containerId, {}, function(){
         // 'this' context in current scope is equal to player
         this.vastClient({
           "adsEnabled" : options.adsEnabled,
           "adCancelTimeout" : 5000,
-          "urls" : urls
+          "urls" : preRoll,
+          "postRoll" : postRoll
         });
 
         if (options.autoplay) {
