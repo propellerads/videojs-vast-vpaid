@@ -7,7 +7,6 @@
    * @param {string} options.url url for getting configuration for player
    * @param {string} [options.containerId = 'video_element'] id of video element to load ad
    * @param {boolean} [options.adsEnabled = true] should we play ad or not
-   * @param {boolean} [options.autoplay = true] should we play video in auto mode or not
    * @param {string} [options.pixel] url of pixel
    */
   window.videoInitWrapper = function(options){
@@ -19,7 +18,6 @@
     }
     options.containerId = options.containerId || "video_element";
     options.adsEnabled = options.adsEnabled !== void 0 ? options.adsEnabled : true;
-    options.autoplay = options.autoplay !== void 0 ? options.autoplay : true;
 
     ajax = new XMLHttpRequest();
 
@@ -55,7 +53,7 @@
           "postRoll" : postRoll
         });
 
-        if (options.autoplay) {
+        if (this.autoplay()) {
           this.play();
         }
 

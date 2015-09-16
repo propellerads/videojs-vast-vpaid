@@ -64,6 +64,7 @@ playerUtils.restorePlayerSnapshot = function restorePlayerSnapshot(player, snaps
     tech.poster = snapshot.nativePoster;
   }
 
+
   if ('style' in snapshot) {
     // overwrite all css style properties to restore state precisely
     tech.setAttribute('style', snapshot.style || '');
@@ -83,6 +84,8 @@ playerUtils.restorePlayerSnapshot = function restorePlayerSnapshot(player, snaps
 
     if(snapshot.autoplay){
       player.one('canplay', tryToResume);
+    } else {
+      player.pause();
     }
 
 
@@ -201,6 +204,11 @@ playerUtils.prepareForAds = function (player) {
   player.on('vast.adStart', addStyles);
   player.on('vast.adEnd', removeStyles);
   player.on('vast.adsCancel', removeStyles);
+  player.on('vast.adEnd', function(){
+    if(isPostRoll()){
+      _firstPlay = false;
+    }
+  });
 
   /*** Local Functions ***/
 
@@ -223,10 +231,13 @@ playerUtils.prepareForAds = function (player) {
      */
     var origPlay = player.play;
     player.play = function (callOrigPlay) {
-      if (isFirstPlay() && !isPostRoll()) {
-        firstPlay.call(this);
-      } else {
-        resume.call(this, callOrigPlay);
+
+      if(!isPostRoll()){
+        if (isFirstPlay()) {
+          firstPlay.call(this);
+        } else {
+          resume.call(this, callOrigPlay);
+        }
       }
 
       return this;
@@ -288,7 +299,7 @@ playerUtils.prepareForAds = function (player) {
   }
 
   function tryToTriggerFirstPlay() {
-    if (isFirstPlay() && !isPostRoll()) {
+    if (isFirstPlay()) {
       _firstPlay = false;
       player.trigger('vast.firstPlay');
     }

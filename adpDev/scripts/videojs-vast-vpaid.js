@@ -2814,6 +2814,7 @@ playerUtils.restorePlayerSnapshot = function restorePlayerSnapshot(player, snaps
     tech.poster = snapshot.nativePoster;
   }
 
+
   if ('style' in snapshot) {
     // overwrite all css style properties to restore state precisely
     tech.setAttribute('style', snapshot.style || '');
@@ -2833,6 +2834,8 @@ playerUtils.restorePlayerSnapshot = function restorePlayerSnapshot(player, snaps
 
     if(snapshot.autoplay){
       player.one('canplay', tryToResume);
+    } else {
+      player.pause();
     }
 
 
@@ -2951,6 +2954,11 @@ playerUtils.prepareForAds = function (player) {
   player.on('vast.adStart', addStyles);
   player.on('vast.adEnd', removeStyles);
   player.on('vast.adsCancel', removeStyles);
+  player.on('vast.adEnd', function(){
+    if(isPostRoll()){
+      _firstPlay = false;
+    }
+  });
 
   /*** Local Functions ***/
 
@@ -2973,10 +2981,13 @@ playerUtils.prepareForAds = function (player) {
      */
     var origPlay = player.play;
     player.play = function (callOrigPlay) {
-      if (isFirstPlay() && !isPostRoll()) {
-        firstPlay.call(this);
-      } else {
-        resume.call(this, callOrigPlay);
+
+      if(!isPostRoll()){
+        if (isFirstPlay()) {
+          firstPlay.call(this);
+        } else {
+          resume.call(this, callOrigPlay);
+        }
       }
 
       return this;
@@ -3038,7 +3049,7 @@ playerUtils.prepareForAds = function (player) {
   }
 
   function tryToTriggerFirstPlay() {
-    if (isFirstPlay() && !isPostRoll()) {
+    if (isFirstPlay()) {
       _firstPlay = false;
       player.trigger('vast.firstPlay');
     }
@@ -3456,6 +3467,8 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
 
   var settings = extend({}, defaultOpts, options || {});
 
+  window.player = player;
+
   if (isDefined(settings.urls)) {
     settings.url = echoFn(settings.urls.shift());
 
@@ -3470,11 +3483,13 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
       _postRoll = true;
     });
     player.one('vast.contentEnd', function(){
-      player.trigger('vast.postRoll');
+      player.one('vast.adStart', function(){
+        if(snapshot !== null && isDefined(snapshot)){
+          snapshot.autoplay = false;
+        }
+        player.trigger('vast.postRoll');
+      });
       settings.urls = settings.postRoll;
-      if(snapshot !== null && isDefined(snapshot)){
-        snapshot.autoplay = false;
-      }
       setTimeout(tryToPlayAd,0);
     });
   }
@@ -3515,8 +3530,9 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
   player.on('adNext', function () {
     cancelAds();
     setTimeout(function(){
-      if(!_postRoll && settings.urls.length)
-      player.play();
+      if(settings.urls.length){
+        player.play();
+      }
     }, 0);
   });
 
@@ -3575,6 +3591,7 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
         snapshot = null;
       }
     }
+
 
     function setupContentEvents() {
       playerUtils.once(player, ['playing', 'vast.reset'], function (evt) {
