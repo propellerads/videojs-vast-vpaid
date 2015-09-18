@@ -68,11 +68,11 @@
     function _reconfigure(config){
 
       if( config.vast_preroll !== void 0){
-        config.vast_preroll = config.vast_preroll.split('or').map(function(url){return url.trim()});
+        config.vast_preroll = config.vast_preroll.split(' or ').map(function(url){return url.trim()});
       }
 
       if( config.vast_postroll !== void 0){
-        config.vast_postroll = config.vast_postroll.split('or').map(function(url){return url.trim()});
+        config.vast_postroll = config.vast_postroll.split(' or ').map(function(url){return url.trim()});
       }
 
       return config;
