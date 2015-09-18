@@ -3,11 +3,12 @@ function VASTClient(options) {
     return new VASTClient(options);
   }
   var defaultOptions = {
-    WRAPPER_LIMIT: 5
+    WRAPPER_LIMIT : 5,
+    withCredentials : true
   };
 
   options = options || {};
-  this.settings = extend({}, options, defaultOptions);
+  this.settings = extend({}, defaultOptions, options);
   this.errorURLMacros = [];
 }
 
@@ -128,6 +129,7 @@ VASTClient.prototype._getAd = function getVASTAd(url, callback) {
 };
 
 VASTClient.prototype._requestVASTXml = function requestVASTXml(url, callback) {
+  console.log(this.settings)
   try{
     http.get(url, function (error, response, status){
       if(error) {
@@ -135,7 +137,7 @@ VASTClient.prototype._requestVASTXml = function requestVASTXml(url, callback) {
       }
       callback(null, response);
     }, {
-      withCredentials: true
+      withCredentials: this.settings.withCredentials
     });
   }catch(e){
     callback(e);

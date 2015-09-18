@@ -1,7 +1,6 @@
 vjs.plugin('vastClient', function VASTPlugin(options) {
   var snapshot;
   var player = this;
-  var vast = new VASTClient();
   var adsCanceled = false;
   var _postRoll = false;
   var defaultOpts = {
@@ -32,12 +31,16 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
     autoResize: true,
 
     // Path to the VPAID flash ad's loader
-    vpaidFlashLoaderPath: '/VPAIDFlash.swf'
+    vpaidFlashLoaderPath: '/VPAIDFlash.swf',
+
+    withCredentials : true
   };
 
   var settings = extend({}, defaultOpts, options || {});
 
-  window.player = player;
+  var vast = new VASTClient({
+    withCredentials : settings.withCredentials
+  });
 
   if (isDefined(settings.urls)) {
     settings.url = echoFn(settings.urls.shift());

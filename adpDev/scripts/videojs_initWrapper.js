@@ -7,6 +7,7 @@
    * @param {string} options.url url for getting configuration for player
    * @param {string} [options.containerId = 'video_element'] id of video element to load ad
    * @param {boolean} [options.adsEnabled = true] should we play ad or not
+   * @param {boolean} [options.withCredentials = true] should we send withCredentials as true or false
    * @param {string} [options.pixel] url of pixel
    */
   window.videoInitWrapper = function(options){
@@ -18,8 +19,11 @@
     }
     options.containerId = options.containerId || "video_element";
     options.adsEnabled = options.adsEnabled !== void 0 ? options.adsEnabled : true;
+    options.withCredentials = options.withCredentials !== void 0 ? options.withCredentials : true;
 
     ajax = new XMLHttpRequest();
+
+    ajax.withCredentials = options.withCredentials;
 
     ajax.onreadystatechange = function() {
       if (ajax.readyState == XMLHttpRequest.DONE) {
@@ -50,7 +54,8 @@
           "adsEnabled" : options.adsEnabled,
           "adCancelTimeout" : 5000,
           "urls" : preRoll,
-          "postRoll" : postRoll
+          "postRoll" : postRoll,
+          "withCredentials" : options.withCredentials
         });
 
         if (this.autoplay()) {

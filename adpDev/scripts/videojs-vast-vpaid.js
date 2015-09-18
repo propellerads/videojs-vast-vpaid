@@ -3431,7 +3431,6 @@ xml.decode = function decodeXML(str) {
 vjs.plugin('vastClient', function VASTPlugin(options) {
   var snapshot;
   var player = this;
-  var vast = new VASTClient();
   var adsCanceled = false;
   var _postRoll = false;
   var defaultOpts = {
@@ -3462,12 +3461,16 @@ vjs.plugin('vastClient', function VASTPlugin(options) {
     autoResize: true,
 
     // Path to the VPAID flash ad's loader
-    vpaidFlashLoaderPath: '/VPAIDFlash.swf'
+    vpaidFlashLoaderPath: '/VPAIDFlash.swf',
+
+    withCredentials : true
   };
 
   var settings = extend({}, defaultOpts, options || {});
 
-  window.player = player;
+  var vast = new VASTClient({
+    withCredentials : settings.withCredentials
+  });
 
   if (isDefined(settings.urls)) {
     settings.url = echoFn(settings.urls.shift());
@@ -4900,11 +4903,12 @@ function VASTClient(options) {
     return new VASTClient(options);
   }
   var defaultOptions = {
-    WRAPPER_LIMIT: 5
+    WRAPPER_LIMIT : 5,
+    withCredentials : true
   };
 
   options = options || {};
-  this.settings = extend({}, options, defaultOptions);
+  this.settings = extend({}, defaultOptions, options);
   this.errorURLMacros = [];
 }
 
@@ -5025,6 +5029,7 @@ VASTClient.prototype._getAd = function getVASTAd(url, callback) {
 };
 
 VASTClient.prototype._requestVASTXml = function requestVASTXml(url, callback) {
+  console.log(this.settings)
   try{
     http.get(url, function (error, response, status){
       if(error) {
@@ -5032,7 +5037,7 @@ VASTClient.prototype._requestVASTXml = function requestVASTXml(url, callback) {
       }
       callback(null, response);
     }, {
-      withCredentials: true
+      withCredentials: this.settings.withCredentials
     });
   }catch(e){
     callback(e);
