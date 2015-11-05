@@ -4,7 +4,7 @@ function VPAIDAdUnitWrapper(vpaidAdUnit, opts) {
   }
   sanityCheck(vpaidAdUnit, opts);
   var defaultOpts = {
-    responseTimeout: 5000
+    responseTimeout: opts.responseTimeout
   };
 
   this.options = extend({}, defaultOpts, opts || {});

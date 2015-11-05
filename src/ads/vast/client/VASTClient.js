@@ -129,7 +129,6 @@ VASTClient.prototype._getAd = function getVASTAd(url, callback) {
 };
 
 VASTClient.prototype._requestVASTXml = function requestVASTXml(url, callback) {
-  console.log(this.settings)
   try{
     http.get(url, function (error, response, status){
       if(error) {

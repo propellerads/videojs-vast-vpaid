@@ -18,6 +18,7 @@ function VPAIDFlashTech(mediaFile, settings) {
 }
 
 VPAIDFlashTech.supports = function (type) {
+  //console.log(type, VPAIDFLASHClient.isSupported());
   return type === 'application/x-shockwave-flash' && VPAIDFLASHClient.isSupported();
 };
 

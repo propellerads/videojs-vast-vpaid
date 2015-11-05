@@ -52,10 +52,11 @@
         // 'this' context in current scope is equal to player
         this.vastClient({
           "adsEnabled" : options.adsEnabled,
-          "adCancelTimeout" : 5000,
+          "adCancelTimeout" : options.adCancelTimeout || 3000,
           "urls" : preRoll,
           "postRoll" : postRoll,
-          "withCredentials" : options.withCredentials
+          "withCredentials" : options.withCredentials,
+          "vpaidFlashLoaderPath" : options.vpaidFlashLoaderPath
         });
 
         if (this.autoplay()) {

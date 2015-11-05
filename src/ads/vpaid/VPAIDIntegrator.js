@@ -11,7 +11,7 @@ function VPAIDIntegrator(player, settings) {
   this.player = player;
   this.containerEl = createVPAIDContainerEl(player);
   this.options = {
-    responseTimeout: 2000,
+    responseTimeout: settings.adCancelTimeout || 2000,
     VPAID_VERSION: {
       full: '2.0',
       major: 2,
@@ -147,14 +147,19 @@ VPAIDIntegrator.prototype._findSupportedTech = function (vastResponse, settings)
 
 VPAIDIntegrator.prototype._loadAdUnit = function (tech, vastResponse, next) {
   var player = this.player;
+  var settings = this.settings;
   var vjsTechEl = player.el().querySelector('.vjs-tech');
+
   tech.loadAdUnit(this.containerEl, vjsTechEl, function (error, adUnit) {
     if (error) {
       return next(error, adUnit, vastResponse);
     }
 
     try {
-      var WrappedAdUnit = new VPAIDAdUnitWrapper(adUnit, {src: tech.mediaFile.src});
+      var WrappedAdUnit = new VPAIDAdUnitWrapper(adUnit, {
+        src: tech.mediaFile.src,
+        responseTimeout : settings.adCancelTimeout
+      });
       var techClass = 'vjs-' + tech.name + '-ad';
       dom.addClass(player.el(), techClass);
       player.one('vpaid.adEnd', function() {
